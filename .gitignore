@@ -5,10 +5,11 @@ Saved
 .vscode
 .vs
 *.VC.db
-*opensdf
+*.vsconfig
+*.opensdf
 *.opendb
-*sdf
+*.sdf
 *.sln
 *.suo
-*xcodeproj
-*xcworkspace
+*.xcodeproj
+*.xcworkspace
