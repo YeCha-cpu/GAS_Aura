@@ -30,11 +30,11 @@ void AAuraPlayerController::CursorTrace()
 	
 	// 更新光标追踪的Actor引用，保存上一帧的Actor并设置当前光标下的Actor
 	LastActor = ThisActor;
-	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	ThisActor = TScriptInterface<IEnemyInterface>(CursorHit.GetActor());
 	
 	/**
 	 * 从鼠标标处开始进行线条追踪，分为以下几种情况：
-	 * A. 上一个演员对象为空，且当前演员对象也为空
+	 * A. 上一个演员对象为空，且当前演员对象也为空 
 	 *    - 不执行任何操作
 	 * B. 上一个演员对象为空，且当前演员对象有效
 	 *    - 高亮当前演员对象
@@ -77,11 +77,12 @@ void AAuraPlayerController::BeginPlay()
 	
 	// 获取增强输入本地玩家子系统，用于管理增强输入映射和绑定 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	if (Subsystem)
+	{
+		// 添加映射上下文到本地玩家子系统
+        Subsystem->AddMappingContext(AuraContext,0);
+	}
 	
-	check(Subsystem);
-	// 添加映射上下文到本地玩家子系统
-	Subsystem->AddMappingContext(AuraContext,0);
-		
 	bShowMouseCursor = true;// 显示鼠标光标,用于俯视角
 	DefaultMouseCursor = EMouseCursor::Default;// 鼠标光标样式
 	

@@ -42,6 +42,7 @@ private:
 	void Zoom(const FInputActionValue& InputActionValue);
 	
 	void CursorTrace();
-	IEnemyInterface* LastActor;
-	IEnemyInterface* ThisActor;
+	// TScriptInterface 是 UE 专门用来安全持有接口指针的智能指针类型，能正确处理垃圾回收和类型转换。
+	TScriptInterface<IEnemyInterface> LastActor;
+	TScriptInterface<IEnemyInterface> ThisActor;
 };
