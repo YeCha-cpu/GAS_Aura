@@ -2,6 +2,10 @@
 
 
 #include "GAS/AS/AuraAttributeSet.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
@@ -9,8 +13,8 @@ UAuraAttributeSet::UAuraAttributeSet()
 	// 初始化属性值
 	InitHealth(50.f);
 	InitMaxHealth(100.f);
-	InitMana(50.f);
-	InitMaxMana(100.f);
+	InitMana(10.f);
+	InitMaxMana(50.f);
 }
 
 /*---------------------------------------------网络复制回调属性实现---------------------------------------------*/
@@ -43,4 +47,141 @@ void UAuraAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
 void UAuraAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, MaxMana, OldMaxMana);
+}
+
+// 无论是对AS直接赋值，还是用GE修改AS，都会在属性变化前调用此函数(可用以限制【基础值】变化范围)
+void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	Super::PreAttributeChange(Attribute, NewValue);
+	
+	if (Attribute == GetHealthAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::White,
+				FString::Printf(TEXT("Health Changed: %f"), NewValue)
+			);
+		}
+	}
+	if (Attribute == GetMaxHealthAttribute())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::White,
+				FString::Printf(TEXT("MaxHealth Changed: %f"), NewValue)
+			);
+		}
+	}
+	if (Attribute == GetManaAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::White,
+				FString::Printf(TEXT("Mana Changed: %f"), NewValue)
+			);
+		}
+	}
+	if (Attribute == GetMaxManaAttribute())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::White,
+				FString::Printf(TEXT("MaxMana Changed: %f"), NewValue)
+			);
+		}
+	}
+}
+
+// 属性值变化后调用
+void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+	
+	// Data是 GAS 传入的完整回调上下文，包含了「哪个 GameplayEffect、修改了哪个属性、修改了多少数值、谁是施法者、谁是目标」等全部信息。
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+				 FString::Printf(TEXT("Health from GetHealth(): %f"), GetHealth()));
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+				 FString::Printf(TEXT("Health Magnitude: %f"), Data.EvaluatedData.Magnitude));
+			
+		}
+	}
+	if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+				 FString::Printf(TEXT("Mana from GetMana(): %f"), GetMana()));
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+				 FString::Printf(TEXT("Mana Magnitude: %f"), Data.EvaluatedData.Magnitude));
+		}
+	}
+
+	FEffectProperties Props;
+	SetEffectProperties(Data, Props);
+}
+
+/**
+ * 从 GameplayEffect 修改回调数据中，提取施法者（Source）与目标（Target）双方的完整上下文信息
+ * 统一封装到 FEffectProperties 结构体中，避免在属性回调里重复编写大量重复的指针提取与空校验代码
+ * 
+ * @param Data   GAS 传入的 GE 修改回调完整上下文，包含施法者、目标、修改数值、GE 实例等全部信息
+ * @param Props  输出参数，用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
+ * 
+ * @note  本函数仅在服务端生效（PostGameplayEffectExecute 仅服务器触发）
+ * @note  施法者控制器做了双重兜底获取：优先从 ASC 身份信息取，失败则从 Pawn 对象获取，兼容 ASC 挂载在 PlayerState/Character 等不同场景
+ * @note  所有指针提取均做了多层空值校验，避免访问无效对象导致游戏崩溃
+ */
+void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const
+{
+	// 获取 GameplayEffect 的上下文
+	Props.EffectContextHandle = Data.EffectSpec.GetContext();
+	// 获取 施法者 上下文中的 ASC
+	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
+	// 判断 SourceASC 的 Actor 中的 Avatar 是否存在
+	if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
+	{
+		// 获取 施法者
+		Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
+		Props.SourceController = Props.SourceASC->AbilityActorInfo->PlayerController.Get();
+		if (IsValid(Props.SourceAvatarActor) && IsValid(Props.SourceController))
+		{ 
+			if (const APawn* SourcePawn = Cast<APawn>(Props.SourceAvatarActor))
+			{
+				Props.SourceController = SourcePawn->GetController(); 
+			}
+		}
+		if (IsValid(Props.SourceController))
+		{
+			ACharacter* SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
+		}
+			
+	}
+		
+	//从回调上下文Data里层层校验有效性，安全取出目标方的核心对象（化身 Actor、控制器、角色对象、能力系统组件），
+	//为后续业务逻辑（比如播放受击动画、触发 UI、施加 buff）做准备
+	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+	{
+		Props.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+		Props.TargetController =  Data.Target.AbilityActorInfo->PlayerController.Get();
+		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
+		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
+	}
 }
