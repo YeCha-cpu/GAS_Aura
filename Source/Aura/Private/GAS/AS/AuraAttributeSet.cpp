@@ -12,9 +12,9 @@
 UAuraAttributeSet::UAuraAttributeSet()
 {
 	// 初始化属性值
-	InitHealth(50.f);
+	InitHealth(100.f);
 	InitMaxHealth(100.f);
-	InitMana(10.f);
+	InitMana(30.f);
 	InitMaxMana(50.f);
 }
 
@@ -57,7 +57,9 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 	
 	if (Attribute == GetHealthAttribute())
 	{
+		// 限制【基础值】范围
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+		
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
@@ -82,7 +84,9 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 	}
 	if (Attribute == GetManaAttribute())
 	{
+		// 限制【基础值】范围
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
+		
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
@@ -115,17 +119,22 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	// Data 是 GAS 传入的完整回调上下文，包含了「哪个 GameplayEffect、修改了哪个属性、修改了多少数值、谁是施法者、谁是目标」等全部信息。
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
+		// 确保应用 GE 后，Health属性值在有效范围内
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black,
 				 FString::Printf(TEXT("Health from GetHealth(): %f"), GetHealth()));
 			GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Black,
 				 FString::Printf(TEXT("Health Magnitude: %f"), Data.EvaluatedData.Magnitude));
-			
 		}
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
+		// 确保应用 GE 后，Mana属性值在有效范围内
+		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+		
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Black,
