@@ -9,7 +9,7 @@
 
 
 UCLASS()
-class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface
+class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface// 继承 IEnemyInterface 接口
 {
 	GENERATED_BODY()
 	
@@ -21,5 +21,6 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void InitAbilityActorInfo() override;
 	
 };

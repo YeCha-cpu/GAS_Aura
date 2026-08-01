@@ -22,9 +22,8 @@ public:
 	
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	
+	// 外部通过此函数来初始化 OverlayWidget（包括 OverlayWidget 实例本身以及 控制器参数）
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
-	
-protected:
 	
 private:
 	UPROPERTY(EditAnywhere)
@@ -32,7 +31,6 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
-	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerclass;
 };

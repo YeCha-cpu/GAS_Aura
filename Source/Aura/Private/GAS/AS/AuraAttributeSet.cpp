@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "Engine/Engine.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 
@@ -60,8 +61,8 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
+				1,
+				5.f,
 				FColor::White,
 				FString::Printf(TEXT("Health Changed: %f"), NewValue)
 			);
@@ -72,8 +73,8 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
+				2,
+				5.f,
 				FColor::White,
 				FString::Printf(TEXT("MaxHealth Changed: %f"), NewValue)
 			);
@@ -85,8 +86,8 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
+				3,
+				5.f,
 				FColor::White,
 				FString::Printf(TEXT("Mana Changed: %f"), NewValue)
 			);
@@ -97,8 +98,8 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
+				4,
+				5.f,
 				FColor::White,
 				FString::Printf(TEXT("MaxMana Changed: %f"), NewValue)
 			);
@@ -111,14 +112,14 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 {
 	Super::PostGameplayEffectExecute(Data);
 	
-	// Data是 GAS 传入的完整回调上下文，包含了「哪个 GameplayEffect、修改了哪个属性、修改了多少数值、谁是施法者、谁是目标」等全部信息。
+	// Data 是 GAS 传入的完整回调上下文，包含了「哪个 GameplayEffect、修改了哪个属性、修改了多少数值、谁是施法者、谁是目标」等全部信息。
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+			GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black,
 				 FString::Printf(TEXT("Health from GetHealth(): %f"), GetHealth()));
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+			GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Black,
 				 FString::Printf(TEXT("Health Magnitude: %f"), Data.EvaluatedData.Magnitude));
 			
 		}
@@ -127,22 +128,23 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+			GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Black,
 				 FString::Printf(TEXT("Mana from GetMana(): %f"), GetMana()));
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Black,
+			GEngine->AddOnScreenDebugMessage(8,  5.f, FColor::Black,
 				 FString::Printf(TEXT("Mana Magnitude: %f"), Data.EvaluatedData.Magnitude));
 		}
 	}
 
+	// Props 用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
 }
 
 /**
- * 从 GameplayEffect 修改回调数据中，提取施法者（Source）与目标（Target）双方的完整上下文信息
+ * 从 GameplayEffect 修改回调数据（Data）中，提取施法者（Source）与目标（Target）双方的完整上下文信息
  * 统一封装到 FEffectProperties 结构体中，避免在属性回调里重复编写大量重复的指针提取与空校验代码
  * 
- * @param Data   GAS 传入的 GE 修改回调完整上下文，包含施法者、目标、修改数值、GE 实例等全部信息
+ * @param Data   GAS 传入的 GE 修改回调 的完整上下文，包含施法者、目标、修改数值、GE 实例等全部信息
  * @param Props  输出参数，用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
  * 
  * @note  本函数仅在服务端生效（PostGameplayEffectExecute 仅服务器触发）
@@ -158,16 +160,18 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 	// 判断 SourceASC 的 Actor 中的 Avatar 是否存在
 	if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
 	{
-		// 获取 施法者
+		// 获取 施法者，AbilityActorInfo表示该ASC的归属者
 		Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
 		Props.SourceController = Props.SourceASC->AbilityActorInfo->PlayerController.Get();
 		if (IsValid(Props.SourceAvatarActor) && IsValid(Props.SourceController))
 		{ 
+			// 获取 施法者 控制器
 			if (const APawn* SourcePawn = Cast<APawn>(Props.SourceAvatarActor))
 			{
 				Props.SourceController = SourcePawn->GetController(); 
 			}
 		}
+		// 获取 施法者 角色对象
 		if (IsValid(Props.SourceController))
 		{
 			ACharacter* SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());

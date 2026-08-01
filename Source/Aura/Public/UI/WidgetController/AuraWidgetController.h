@@ -16,21 +16,18 @@ struct FWidgetControllerParams
 {
 	GENERATED_BODY()
 	
-	FWidgetControllerParams() {};
+	FWidgetControllerParams() {}
 	FWidgetControllerParams(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS) : 
 	PlayerController(PC), PlayerState(PS), AbilitySystemComponent(ASC), AttributeSet(AS) {}
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<APlayerController> PlayerController = nullptr;
-	
+	TObjectPtr<APlayerController> PlayerController = nullptr;// 玩家控制器
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<APlayerState> PlayerState = nullptr;
-	
+	TObjectPtr<APlayerState> PlayerState = nullptr;// 玩家状态
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent = nullptr;
-	
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent = nullptr;// 能力系统组件
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAttributeSet> AttributeSet = nullptr;
+	TObjectPtr<UAttributeSet> AttributeSet = nullptr;// 属性集
 };
 
 UCLASS()
@@ -42,6 +39,7 @@ public:
 	void SetWidgetControllerParams(const FWidgetControllerParams& InitParams);
 	virtual void BroadcastInitialValues();
 	virtual void BindCallbackToDependencies();
+	
 	
 protected:
 	// 这四个属性均为只读且可在蓝图中访问，用于 UI Widget 与 游戏核心系统 的交互。

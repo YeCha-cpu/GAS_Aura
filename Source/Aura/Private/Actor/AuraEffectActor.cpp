@@ -19,10 +19,9 @@ void AAuraEffectActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
 }
 
-// 应用 GE 函数：
+// TODO: 应用 GE 函数：
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
 	// 使用 能力系统蓝图库 获取目标Actor的 能力系统组件（内部已经判断是否继承自 IAbilitySystemInterface）
@@ -35,14 +34,15 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 	// 2、给游戏效果上下文添加源对象 [将当前这个AAuraEffectActor自身标记为效果的源对象。后续 GE 执行时，可以通过上下文追溯到效果是哪个 Actor 产生的]
 	EffectContextHandle.AddSourceObject(this);
 	// 3、创建游戏效果规格 [GameplayEffect 是配置资产（定义了 Modifier、持续时间、标签等规则），不能直接施加到角色身上；必须生成FGameplayEffectSpec（效果规格）这个运行时实例，才能实际应用]
-	const FGameplayEffectSpecHandle EffectSpecHandle =TargetActorASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel, EffectContextHandle);
+	const FGameplayEffectSpecHandle EffectSpecHandle = TargetActorASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel, EffectContextHandle);
 	// 4、应用游戏效果 [EffectSpecHandle.Data.Get() 是从句柄中取出实际的FGameplayEffectSpec的原始指针，再解引用后传入]
 	const FActiveGameplayEffectHandle ActiveGameplayEffectHandle = TargetActorASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 	
-	// 从句柄中取出实际的FGameplayEffectSpec的原始指针再拿到此原始指针对应的原始配置资产再取出 UGameplayEffect 的原始裸指针再访问资产里的定义效果的时长类型，
+	// 从句柄中取出实际的FGameplayEffectSpec的原始指针 再拿到此原始指针对应的原始配置资产 再取出 UGameplayEffect 的原始裸指针 再访问资产里的定义效果的时长类型，
 	// 判断 定义效果的时长类型 是否是无限效果
-	const bool bIsInfinite =EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
-	// 如果是无限效果，并且无限效果的移除策略是移除在结束重叠时，则将此效果句柄添加到 ActiveEffectHandles键值 中
+	const bool bIsInfinite = EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
+	
+	// 如果是无限效果 ，并且无限效果的移除策略是移除在结束重叠时，我们需要手动将它移除。则将此 效果句柄 和 目标ActorASC 添加到 ActiveEffectHandles键值 中
 	if (bIsInfinite && InfinitGameplayEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
 		ActiveEffectHandles.Add(ActiveGameplayEffectHandle, TargetActorASC);
@@ -52,7 +52,7 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
-	// 通过策略应用GE
+	// 开始重叠时应用GE
 	if (InstantGameplayEffectPolicy == EEffectApplcationPolicy::ApplyOnOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
@@ -69,7 +69,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
-	// 通过策略应用GE
+	// 离开重叠时应用GE
 	if (InstantGameplayEffectPolicy == EEffectApplcationPolicy::ApplyOnEndOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
@@ -83,16 +83,17 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
 	
-	// 移除无限GE
+	// 离开重叠时移除无限GE
 	if (InfinitGameplayEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
-		// 获取目标角色的 技能系统组件
+		// 获取目标角色的 技能系统组件，以匹配 ActiveEffectHandles 键值对中的值，用来移除效果
 		UAbilitySystemComponent* TargetActorASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 		if (!IsValid(TargetActorASC)) return;
 		
-		// 将要移除的句柄保存在 HandlesToRemove 数组中
+		// 将要移除的句柄保存在 HandlesToRemove 数组中，遍历完成后再删除
 		TArray<FActiveGameplayEffectHandle> HandlesToRemove;
-		// 遍历 ActiveEffectHandles 键值对，判断当前目标Actor的技能系统组件是否是 ActiveEffectHandles 键值对中的值【注意：不能在遍历的同时删除元素，可能导致崩溃！】
+		
+		// 遍历 ActiveEffectHandles 键值对，判断当前目标Actor的ASC 是否是 ActiveEffectHandles 键值对中的值【注意：不能在遍历的同时删除元素，可能导致崩溃！】
 		for (auto HandlePair : ActiveEffectHandles)
 		{
 			if (TargetActorASC == HandlePair.Value)

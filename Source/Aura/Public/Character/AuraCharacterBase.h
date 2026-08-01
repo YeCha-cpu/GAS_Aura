@@ -21,7 +21,7 @@ public:
 	// 获取能力系统组件的接口
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	// 获取属性集的函数
-	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AS; }
+	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -31,10 +31,12 @@ protected:
 	
 	// 能力系统组件 和 属性集 指针
 	UPROPERTY()
-	TObjectPtr<UAbilitySystemComponent> ASC;
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY()
-	TObjectPtr<UAttributeSet> AS;
+	TObjectPtr<UAttributeSet> AttributeSet;
 
+	// 初始化技能系统组件，指定 OwnerActor 和 AvatarActor
+	virtual void InitAbilityActorInfo();
 	
 private:
 

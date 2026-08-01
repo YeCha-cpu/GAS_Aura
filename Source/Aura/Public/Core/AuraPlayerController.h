@@ -35,13 +35,14 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Aura|Input")
 	TObjectPtr<UInputAction> ZoomAction;
-
 	
 	/* ------------------------------输入回调函数------------------------------ */
 	void Move(const FInputActionValue& InputActionValue);
 	void Zoom(const FInputActionValue& InputActionValue);
 	
+	// 光标追踪
 	void CursorTrace();
+	
 	// TScriptInterface 是 UE 专门用来安全持有接口指针的智能指针类型，能正确处理垃圾回收和类型转换。
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;

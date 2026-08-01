@@ -21,6 +21,7 @@ struct FEffectProperties
 	GENERATED_BODY()
 	FEffectProperties(){};
 
+	// GameplayEffect 上下文信息：存储触发 GameplayEffect 的上下文信息
 	FGameplayEffectContextHandle EffectContextHandle;
 	
 	// 源对象信息：存储触发 GameplayEffect 的源头相关引用
@@ -55,7 +56,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// 属性值变化前调用
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-	// 属性值变化后调用
+	// GE修改AS属性完毕后调用
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	
 /*---------------------------------------------网络复制回调属性声明---------------------------------------------*/
@@ -88,6 +89,6 @@ public:
 	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const;
 	
 private:
-	// 获取 GameplayEffect 的上下文
+	// 从 GameplayEffect 修改回调数据（Data）中，提取施法者（Source）与目标（Target）双方的完整上下文信息
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
 };

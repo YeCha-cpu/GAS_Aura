@@ -7,6 +7,7 @@
 #include "Core/AuraPlayerController.h"
 #include "Core/AuraPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GAS/AuraAbilitySystemComponent.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -47,15 +48,21 @@ void AAuraCharacter::InitAbilityActorInfo()
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState, this);
-	// 获取技能系统组件和属性集
-	ASC = AuraPlayerState->GetAbilitySystemComponent();
-	AS = AuraPlayerState->GetAttributeSet();
 	
+	// 绑定 应用GE后 触动的委托回调
+	Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();
+	
+	// 从 玩家状态 中获取 能力系统组件 和 属性集
+	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
+	AttributeSet = AuraPlayerState->GetAttributeSet();
+	
+	// 获取 HUD
 	if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
 	{
 		if (AAuraHUD* AuraHUD = Cast<AAuraHUD>(AuraPlayerController->GetHUD()))
 		{
-			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, ASC, AS);
+			// 初始化 OverlayWidget
+			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 		}
 	}
 }

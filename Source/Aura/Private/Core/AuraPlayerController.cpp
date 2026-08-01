@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Interface/EnemyInterface.h"
 #include "Character/AuraCharacter.h"
+#include "Engine/LocalPlayer.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -90,6 +91,7 @@ void AAuraPlayerController::BeginPlay()
 	FInputModeGameAndUI InputModeData;
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputModeData.SetHideCursorDuringCapture(false);
+	// 设置输入模式
 	SetInputMode(InputModeData);
 }
 
@@ -100,12 +102,13 @@ void AAuraPlayerController::SetupInputComponent()
 	// 将 InputComponent 强制转换为增强输入组件类型
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 	
-	EnhancedInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Move);
-	EnhancedInputComponent->BindAction(ZoomAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Zoom);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered,this, &AAuraPlayerController::Move);
+	EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Triggered,this, &AAuraPlayerController::Zoom);
 	
 }
 
-void AAuraPlayerController::Move(const FInputActionValue& InputActionValue){
+void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
+{
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 
 	// 获取控制旋转并提取偏航角，忽略俯仰和翻滚
