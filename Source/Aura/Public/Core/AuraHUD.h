@@ -20,6 +20,8 @@ public:
 	UPROPERTY()
 	TObjectPtr<UAuraUserWidget> OverlayWidget;
 	
+	// 获取 OverlayWidgetController。
+	// 若没有则根据 WCParams 参数来创建一个 OverlayWidgetController 并返回
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	
 	// 外部通过此函数来初始化 OverlayWidget（包括 OverlayWidget 实例本身以及 控制器参数）

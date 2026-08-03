@@ -11,6 +11,7 @@ class APlayerState;
 class UAbilitySystemComponent;
 class UAttributeSet;
 
+// 封装了 WidgetController 所需要的参数
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
 {

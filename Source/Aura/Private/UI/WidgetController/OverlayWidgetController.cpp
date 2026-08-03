@@ -60,14 +60,15 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 		// 遍历所有资产标签
 		for (const FGameplayTag& Tag : AssetTags)
 		{
-			// "A.1".MatchesTag("A") will return True, "A".MatchesTag("A.1") will return False 
+			/** 如果一个标签仅仅在项目设置（DefaultGameplayTags.ini）或蓝图编辑器中手动输入定义，
+			 * 而没有在 C++ 代码中显式注册为“原生标签”，那么 C++ 编译器在编译时根本不知道这个字符串是否合法，此时要用 RequestGameplayTag获取
+			 */
 			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");
 			
 			// // 给MessageWidgetDataTable做判空处理，nullptr则continue
-			// if (MessageWidgetDataTable ==  nullptr) 
-			// 	continue;
+			if (MessageWidgetDataTable == nullptr) continue;
 			
-			// 如果 某个资产标签 成功匹配 Message下的标签：
+			// 如果 某个资产标签 成功匹配 Message下的标签：（"A.1".MatchesTag("A") will return True, "A".MatchesTag("A.1") will return False ）
 			if (Tag.MatchesTag(MessageTag))
 			{
 				// 获取该标签所在的 数据表行
