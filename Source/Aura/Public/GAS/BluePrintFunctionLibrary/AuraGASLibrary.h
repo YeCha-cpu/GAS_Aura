@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "AuraGASLibrary.generated.h"
 
 class UOverlayWidgetController;
 
 /**
- * 【蓝图函数库】GAS 相关的实用工具函数
+ * 【蓝图函数库】GAS 相关的实用工具函数，可全局使用，不用继承 
  * 
  * 继承自 UBlueprintFunctionLibrary，提供可在蓝图中直接调用的静态函数。
  * 设计意图：将 GAS 和 UI 框架中常用的“获取/创建 WidgetController”的逻辑
@@ -39,7 +40,15 @@ public:
 	 * 
 	 * 注意：此函数是 BlueprintPure（纯函数），不会改变状态，可在蓝图事件图表中直接连线使用。
 	 */
-	UFUNCTION(BlueprintPure, Category = "Library|WidgetController", meta = (WorldContext = "WorldContextObject"))
+	UFUNCTION(BlueprintPure, Category = "Library|WidgetController")
 	static UOverlayWidgetController* GetOverlayWidgetController(const UObject* WorldContextObject);
+	
+	
+	/** 【蓝图可调用】获取 AttributeMenuWidgetController（属性菜单 UI 控制器） 
+	 *  功能与 GetOverlayWidgetController 类似，用于获取 AttributeMenuWidgetController
+	 */
+	UFUNCTION(BlueprintPure, Category = "Library|WidgetController")
+	static UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObject);
+
 	
 };

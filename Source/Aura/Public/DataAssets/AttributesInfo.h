@@ -65,6 +65,10 @@ class AURA_API UAttributesInfo : public UDataAsset
 	GENERATED_BODY()
 	
 public:
+	/** 所有属性的信息数组，在【蓝图中的数据资产编辑器】中配置 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes Info")
+	TArray<FAuraAttributeInfo> AttributeInformation;
+	
 	/**
 	 * 【查找函数】通过 GameplayTag 精确匹配对应的属性信息
 	 * 
@@ -75,10 +79,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AttributesInfo")
 	FAuraAttributeInfo FindAttributeInfoByTag(const FGameplayTag& AttributeTag, bool bLogNotFound = false) const;
 	
-	// -------------------- 配置数据 --------------------
-	
-	/** 所有属性的显示信息数组，在数据资产编辑器中配置 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes Info")
-	TArray<FAuraAttributeInfo> AttributeInformation;
+
 	
 };

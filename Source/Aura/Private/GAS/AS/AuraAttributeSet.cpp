@@ -2,17 +2,37 @@
 
 
 #include "GAS/AS/AuraAttributeSet.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
+#include "GAS/GT/AuraGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
-	// 初始化属性值
-
+	// 获取全局唯一的原生标签单例引用。
+	// FAuraGameplayTags 在游戏启动时（AssetManager）将所有标签注册进了引擎的全局标签管理器。
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	
+	/** 将每个主属性的标签绑定到对应的属性获取委托（静态函数）*/
+	TagsToAttributes.Add(Tags.Attributes_Primary_Strength, GetStrengthAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Primary_Intelligence, GetIntelligenceAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Primary_Resilience, GetResilienceAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Primary_Vigor, GetVigorAttribute);
+	
+	/** 将每个二级属性的标签绑定到对应的属性获取委托（静态函数）*/
+	TagsToAttributes.Add(Tags.Attributes_Secondary_Armor, GetArmorAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_ArmorPenrtration, GetArmorPenetrationAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_BlockChance, GetBlockChanceAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_CriticalHitChance, GetCriticalHitChanceAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_CriticalHitDamage, GetCriticalHitDamageAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_CriticalHitResistance, GetCriticalHitResistenceAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_HealthRegeneration, GetHealthRegenerationAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_ManaRegeneration, GetManaRegenerationAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_MaxHealth, GetMaxHealthAttribute);
+	TagsToAttributes.Add(Tags.Attributes_Secondary_MaxMana, GetMaxManaAttribute);
+	
 }
 
 /*---------------------------------------------网络复制回调属性实现---------------------------------------------*/

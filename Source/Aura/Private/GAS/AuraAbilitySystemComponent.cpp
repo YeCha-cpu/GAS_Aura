@@ -11,7 +11,7 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::EffectApplied);
 	
 	// 单例使用示例(MaxHealth): 利用 FAuraGameplayTags 单例获取刚刚注册的原生标签，并在屏幕左上角打印出来。 
-	UE_LOG( LogTemp, Warning, TEXT("Effect Applied: %s"), *FAuraGameplayTags::Get().Attributes_Secondary_MaxHealth.GetTagName().ToString())
+	UE_LOG(LogTemp, Warning, TEXT("Effect Applied: %s"), *FAuraGameplayTags::Get().Attributes_Secondary_MaxHealth.GetTagName().ToString())
 }
 
 // GE应用时调用

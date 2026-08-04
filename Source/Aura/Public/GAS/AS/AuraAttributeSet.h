@@ -7,7 +7,6 @@
 #include "AbilitySystemComponent.h"
 #include "AuraAttributeSet.generated.h"
 
-
 // get、set、init属性的宏定义
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
@@ -45,12 +44,22 @@ struct FEffectProperties
 	ACharacter* TargetCharacter = nullptr;
 };
 
+// typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+// 在这个语境下，class 和 typename 完全等价，翻译过来就是 “某种类型”。using 在这里就是取别名
+// TBaseStaticDelegateInstance 作用就是：将一个普通的C++函数（静态函数或全局函数）包装起来，让它能像一个“对象”一样，被存储、传递和调用
+template<class T>
+using TAttributeFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
+
 UCLASS()
 class AURA_API UAuraAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
 public:
+	// 将 FGameplayTag 映射到“返回 FGameplayAttribute 的无参函数指针”的哈希映射表
+	// 它提供了一个可遍历的“白名单”。只有被添加到这个 Map 中的属性，才会被 UAttributeMenuWidgetController 暴露给 UI。这避免了把 Health（生命值）这种核心战斗属性错误地显示在“属性加点”面板中
+	TMap<FGameplayTag, TAttributeFuncPtr<FGameplayAttribute()>> TagsToAttributes;
+	
 	UAuraAttributeSet();
 	// 属性复制
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

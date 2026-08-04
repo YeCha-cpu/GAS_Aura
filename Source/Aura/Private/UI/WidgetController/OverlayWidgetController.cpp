@@ -23,9 +23,10 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 	
 	/**
 	 * 借助 AddLambda 和 ASC 的委托，当属性值被修改（通常通过 Gameplay Effect）时，对应的 Lambda 自动执行，并把新值广播给 UI。
+	 * 
 	 * 1、拿到监听该属性变化的委托实例：
-	 * 从 ASC 中获取“该属性变化时”的委托，这个委托是 FOnGameplayAttributeValueChange。
-	 * 拿到委托之后就可以进行绑定了
+	 * 从 ASC 中获取“该属性变化时”的【委托】，这个委托是 FOnGameplayAttributeValueChange 类。拿到委托之后就可以进行绑定了
+	 * 
 	 * 2、用 AddLambda 进行绑定。可以省去 创建回调函数 与 绑定回调函数 的操作（AddUObject）： 
 	 * 接收参数 const FOnAttributeChangeData Data，这个结构体里包含了变化前后的值（OldValue、NewValue）。
 	 * 调用 OnHealthChanged.Broadcast(Data.NewValue)，把变化后的新值广播给绑定了 OnHealthChanged 的 UI 部件（比如血条）。

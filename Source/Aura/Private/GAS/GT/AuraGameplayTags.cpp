@@ -73,9 +73,5 @@ void FAuraGameplayTags::InitNativeGameplayTags()
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
 			FName("Attributes.Secondary.MaxMana"),FString("MaxMana(Increase Mana points)"));
 	
-	
-	
-
-
 }
 

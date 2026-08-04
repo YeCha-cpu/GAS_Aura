@@ -14,9 +14,23 @@ UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController(const FWidgetCont
 		
 		// 为 OverlayWidgetController 绑定 AS属性 变化委托
 		OverlayWidgetController->BindCallbackToDependencies();
-		return OverlayWidgetController;
 	}
 	return OverlayWidgetController;
+}
+
+UAttributeMenuWidgetController* AAuraHUD::GetAttributeMenuWidgetController(const FWidgetControllerParams& WCParams)
+{
+	if (AttributeMenuWidgetController == nullptr)
+	{
+		// 创建 AttributeMenuWidgetController 并设置参数
+		AttributeMenuWidgetController = NewObject<UAttributeMenuWidgetController>(this, AttributeMenuWidgetControllerClass);
+		AttributeMenuWidgetController->SetWidgetControllerParams(WCParams);
+		
+		// 为 AttributeMenuWidgetController 绑定 AS属性 变化委托
+		AttributeMenuWidgetController->BindCallbackToDependencies();
+	}
+	return AttributeMenuWidgetController;
+	
 }
 
 void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
