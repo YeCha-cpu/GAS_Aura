@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "Abilities/GameplayAbility.h"
 #include "GameFramework/Character.h"
 #include "Interface/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
@@ -11,6 +12,7 @@
 class UGameplayEffect;
 class UAbilitySystemComponent;
 class UAttributeSet;
+class UGameplayAbility;
 
 UCLASS()
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -57,5 +59,13 @@ protected:
 	
 	// 创建并应用目标GE
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
+	
+	/** GA初始化函数 */
+	void AddCharacterAbilities();
+	
+private:
+	// 要初始化的能力（蓝图中设置）
+	UPROPERTY(EditAnywhere, Category = "GA")
+	TArray<TSubclassOf<UGameplayAbility>> StartUpAbilities;
 
 };

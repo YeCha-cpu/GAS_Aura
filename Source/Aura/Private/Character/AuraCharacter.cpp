@@ -31,7 +31,9 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitAbilityActorInfo();
-	
+
+	// 该函数会遍历 StartUpAbilities 数组并赋予技能
+	AddCharacterAbilities();
 }
 
 // OnRep_PlayerState：PlayerState是服务器复制给客户端的，当【客户端】收到服务器同步的 PlayerState 时，会触发 OnRep_PlayerState 这个「复制通知函数」。

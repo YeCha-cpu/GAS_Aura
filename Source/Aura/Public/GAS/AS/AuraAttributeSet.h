@@ -44,7 +44,6 @@ struct FEffectProperties
 	ACharacter* TargetCharacter = nullptr;
 };
 
-// typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
 // 在这个语境下，class 和 typename 完全等价，翻译过来就是 “某种类型”。using 在这里就是取别名
 // TBaseStaticDelegateInstance 作用就是：将一个普通的C++函数（静态函数或全局函数）包装起来，让它能像一个“对象”一样，被存储、传递和调用
 template<class T>

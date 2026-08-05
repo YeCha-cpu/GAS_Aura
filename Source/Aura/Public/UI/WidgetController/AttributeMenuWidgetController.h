@@ -45,10 +45,10 @@ class AURA_API UAttributeMenuWidgetController : public UAuraWidgetController
 public:
 	//  1、—— 初始数据推送：重写 BroadcastInitialValues() —— 遍历所有属性，广播初始值
 	virtual void BroadcastInitialValues() override;
-	//  2、—— 变化监听（核心）：重写 BindCallbackToDependencies() —— 为每个属性注册变化回调，当属性变化时调用 BroadcastAttributeInfo 广播更新
+	//  2、—— 变化监听（蓝图调用）：重写 BindCallbackToDependencies() —— 为每个属性注册变化回调，当属性变化时调用 BroadcastAttributeInfo 广播更新
 	virtual void BindCallbackToDependencies() override;
 	
-	// 通过 动态多播委托 AttributeInfoDelegate 广播给 UI 蓝图
+	// 通过动态多播委托 AttributeInfoDelegate 广播给 UI 蓝图
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
 	FAttributeInfo_Signature AttributeInfoDelegate;
 	

@@ -16,9 +16,14 @@ class AURA_API UAuraAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	// 外部可调用这个函数来绑定 应用GE后 触动的委托回调
 	void AbilityActorInfoSet();
-	
+	 
 	// 监听 GE 应用时，获取 GE 资产标签
 	FEffectAssetTags EffectAssetTags;
+	
+	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	
+	void AbilityInputTagHeld(const FGameplayTag& InputTag);
+	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 	
 protected:
 	// 回调函数

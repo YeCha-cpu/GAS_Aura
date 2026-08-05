@@ -18,6 +18,8 @@
  * - 方便策划/美术在数据资产中统一配置，无需修改代码。
  * - 支持运行时通过 Tag 查找对应的显示信息，用于 UI 绑定或调试日志。
  */
+
+// 属性信息结构体
 USTRUCT(BlueprintType)
 struct FAuraAttributeInfo
 {
@@ -65,7 +67,7 @@ class AURA_API UAttributesInfo : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	/** 所有属性的信息数组，在【蓝图中的数据资产编辑器】中配置 */
+	/** 所有属性的信息数组，在【蓝图】中配置 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes Info")
 	TArray<FAuraAttributeInfo> AttributeInformation;
 	

@@ -20,7 +20,6 @@ public:
 	// 全局单例访问接口返回当前引擎正在使用的 AssetManager 实例，并将其强制转换为【自定义类型】。外部调用：UAuraAssetManager::Get().LoadPrimaryAsset(...)
 	static UAuraAssetManager& Get();
 	
-protected:
 	// 重写父类 UAssetManager 的虚函数，这个函数会在引擎启动时、资源管理系统准备开始加载主资产（Primary Assets）之前被自动调用
 	virtual void StartInitialLoading() override;
 	

@@ -6,7 +6,7 @@
 #include "GameplayTagContainer.h"
 
 /**
- *核心架构类】:原生游戏标签【单例】管理器
+ *【核心架构类】:原生游戏标签【单例】管理器
  * 功能：
  * 1. 将所有需要在 C++ 和蓝图中同时使用的 GameplayTag 定义为成员变量。
  * 2. 确保这些标签在游戏启动时（AssetManager 初始化阶段）就被注册进引擎全局标签管理器。
@@ -25,7 +25,7 @@ public:
 	// 单例的访问入口。外部调用类方法 FAuraGameplayTags::Get() 就能拿到唯一的实例对象
 	static const FAuraGameplayTags& Get() { return GameplayTags;}
 	
-	// 静态初始化函数，用来为本地标签进行注册
+	// 静态初始化函数，用来为本地标签进行注册（由 UAuraAssetManager 调用）
 	static void InitNativeGameplayTags(); 
 	
 	// ==================== 创建本地标签成员变量（对外暴露的全局唯一句柄） ====================
@@ -45,5 +45,12 @@ public:
 	FGameplayTag Attributes_Secondary_ManaRegeneration;/** 次级属性标签：法力值回复（增加法力值回复） */
 	FGameplayTag Attributes_Secondary_MaxHealth;/** 次级属性标签：最大生命值（增加生命值） */
 	FGameplayTag Attributes_Secondary_MaxMana;/** 次级属性标签：最大法力值（增加法力值） */
+	
+	FGameplayTag InputTag_LMB;/** 输入标签：左键点击 */
+	FGameplayTag InputTag_RMB;/** 输入标签：右键点击 */
+	FGameplayTag InputTag_1;/** 输入标签：1 */
+	FGameplayTag InputTag_2;/** 输入标签：2 */
+	FGameplayTag InputTag_3;/** 输入标签：3 */
+	FGameplayTag InputTag_4;/** 输入标签：4 */
 	
 };
