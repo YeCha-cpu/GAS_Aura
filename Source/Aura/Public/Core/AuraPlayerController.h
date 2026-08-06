@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayTagContainer.h"
+#include "Engine/HitResult.h"
 #include "AuraPlayerController.generated.h"
 
 class USplineComponent;
@@ -53,12 +54,15 @@ private:
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 	void AbilityInputTagHeld(FGameplayTag InputTag);
 	
-	// 光标追踪
+	// 鼠标追踪
 	void CursorTrace();
 	
 	// TScriptInterface 是 UE 专门用来安全持有接口指针的智能指针类型，能正确处理垃圾回收和类型转换。
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;
+	
+	// 鼠标追踪击中点
+	FHitResult CursorHit;
 	
 	UPROPERTY()
 	TObjectPtr<UAuraAbilitySystemComponent> AuraASC;
@@ -78,4 +82,6 @@ private:
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+	
+	void AutoRun();
 };

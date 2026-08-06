@@ -29,13 +29,44 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	
-	CursorTrace();
+	CursorTrace();// 追踪鼠标
+	AutoRun();// 自动移动
 	
+}
+
+void AAuraPlayerController::AutoRun()
+{
+	if (!bAutoRunning) return;
+	if (APawn* ControlledPawn = GetPawn())
+	{
+		// 1. 获取当前控制的 Pawn 在样条线上的最近点（世界坐标）
+		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(
+			ControlledPawn->GetActorLocation(), 
+			ESplineCoordinateSpace::World
+		);
+
+		// 2. 获取该点处的切线方向（即前进方向）  
+		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(
+			LocationOnSpline, 
+			ESplineCoordinateSpace::World
+		);
+
+		// 3. 沿该方向施加移动输入（让 Pawn 向前走）
+		ControlledPawn->AddMovementInput(Direction);
+
+		// 4. 计算当前最近点与缓存目标点（CacheDestination）的距离
+		const float DistanceToDestination = (LocationOnSpline - CacheDestination).Length();
+
+		// 5. 如果距离小于阈值，停止自动奔跑
+		if (DistanceToDestination < AutoRunAcceptanceRadius)
+		{
+			bAutoRunning = false;
+		}
+	}
 }
 
 void AAuraPlayerController::CursorTrace()
 {
-	FHitResult CursorHit;
 	GetHitResultUnderCursor(ECC_Visibility,false,CursorHit);
 	if (!CursorHit.bBlockingHit) return;
 	
@@ -43,42 +74,12 @@ void AAuraPlayerController::CursorTrace()
 	LastActor = ThisActor;
 	ThisActor = TScriptInterface<IEnemyInterface>(CursorHit.GetActor());
 	
-	/**
-	 * 从鼠标标处开始进行线条追踪，分为以下几种情况：
-	 * A. 上一个演员对象为空，且当前演员对象也为空 
-	 *    - 不执行任何操作
-	 * B. 上一个演员对象为空，且当前演员对象有效
-	 *    - 高亮当前演员对象
-	 * C. 上一个演员对象有效，且当前演员对象为空
-	 *    - 取消高亮上一个演员对象
-	 * D. 两个演员对象都有效，但二者不是同一个对象
-	 *    - 取消高亮上一个演员对象，同时高亮当前演员对象
-	 * E. 两个演员对象都有效，且二者是同一个对象
-	 *    - 不执行任何操作
-	 */
+	if (LastActor != ThisActor)
+	{
+		if (LastActor) LastActor->UnHighlightActor();
+		if (ThisActor) ThisActor->HighlightActor();
+	}
 	
-	if (!LastActor && !ThisActor)
-	{
-		// 情况A: 两者都为空，不执行任何操作
-		return;
-	}
-	if (!LastActor && ThisActor)
-	{
-		// 情况B: 上一个为空，当前有效，高亮当前
-		ThisActor->HighlightActor();
-	}
-	else if (LastActor && !ThisActor)
-	{
-		// 情况C: 上一个有效，当前为空，取消高亮上一个
-		LastActor->UnHighlightActor();
-	}
-	else if (LastActor && ThisActor && LastActor != ThisActor)
-	{
-		// 情况D: 两者都有效但不同，切换高亮
-		LastActor->UnHighlightActor();
-		ThisActor->HighlightActor();
-	}
-	// 情况E: 两者相同，不执行任何操作
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -201,8 +202,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		FollowTime += GetWorld()->GetDeltaSeconds();
         
 		// 每帧获取鼠标下的地面位置（射线检测）
-		FHitResult CursorHit;
-		if (GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, CursorHit))
+		if (CursorHit.bBlockingHit)
 		{
 			CacheDestination = CursorHit.ImpactPoint;
 		}
@@ -240,7 +240,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	else
 	{
 		// 非瞄准状态（移动模式）
-		APawn* ControlledPawn = GetPawn();
+		const APawn* ControlledPawn = GetPawn();
 		if (!ControlledPawn)
 		{
 			UE_LOG(LogTemp, Error, TEXT("AbilityInputTagHeld: No controlled pawn!"));
@@ -250,7 +250,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		// 短按（小于阈值）且角色存在 → 发起【自动寻路】
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
-			// 同步寻路到 CacheDestination（鼠标点击位置）
+			// 【同步寻路】到 CacheDestination（鼠标点击位置）
 			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CacheDestination))
 			{
 				// 将路径点添加到样条线（Spline）用于显示或跟随
@@ -260,8 +260,9 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				for (const FVector& PointLoc : NavPath->PathPoints)
 				{
 					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-					DrawDebugSphere(GetWorld(), PointLoc, 10.f, 12, FColor::Green, false, 10.f);
+					// DrawDebugSphere(GetWorld(), PointLoc, 10.f, 12, FColor::Green, false, 10.f);
 				}
+				CacheDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];	// 获取最后一个路径点为目标点
 				bAutoRunning = true;   // 开始自动沿着路径移动
 			}
 		}

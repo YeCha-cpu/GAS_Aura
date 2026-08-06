@@ -9,7 +9,7 @@
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
 	// 绑定 应用GE后 触发的委托回调
-	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::EffectApplied);
+	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);
 	
 	// 单例使用示例(MaxHealth): 利用 FAuraGameplayTags 单例获取刚刚注册的原生标签，并在屏幕左上角打印出来。 
 	UE_LOG(LogTemp, Warning, TEXT("Effect Applied: %s"), *FAuraGameplayTags::Get().Attributes_Secondary_MaxHealth.GetTagName().ToString())
@@ -73,7 +73,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 }
 
 // GE应用时调用
-void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
+void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
 {
 	GEngine->AddOnScreenDebugMessage(
 		9,

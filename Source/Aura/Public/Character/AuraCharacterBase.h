@@ -30,8 +30,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
+	// 角色武器
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
+	
+	// 武器的Socket名称
+	UPROPERTY(EditAnywhere,Category = "Combat")
+	FName WeaponTipSocketName;
+	
+	// 获取武器的Socket位置
+	virtual FVector GetCombatSocketLocation() override;
 	
 	// 能力系统组件 和 属性集 指针
 	UPROPERTY()
