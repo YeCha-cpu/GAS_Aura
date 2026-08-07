@@ -117,6 +117,8 @@ void AAuraPlayerController::SetupInputComponent()
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered,this, &AAuraPlayerController::Move);
 	AuraInputComponent->BindAction(ZoomAction, ETriggerEvent::Triggered,this, &AAuraPlayerController::Zoom);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered,this, &AAuraPlayerController::ShiftPressed);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed,this, &AAuraPlayerController::ShiftReleased);	
 	
 }
 
@@ -180,21 +182,15 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	// 如果按住的不是左键（LMB），直接交给 ASC 去尝试激活技能
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagHeld(InputTag);
-		}
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 		return;
 	}
     
 	/** 以下是左键按住时的逻辑 */
-	if (bTargeting)   // 如果处于 瞄准/目标选中 状态（鼠标落在敌人上 ）
+	if (bTargeting || bShiftKeyDown)   // 如果处于 瞄准/目标选中 状态（鼠标落在敌人上 ）
 	{
 		// 同样交给 ASC 去激活技能（此时左键视为技能触发键）
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagHeld(InputTag);
-		}
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 	}
 	else   // 非瞄准状态，左键作为移动键
 	{
@@ -229,24 +225,12 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		return;
 	}
 	
-	if (bTargeting)
-	{
-		// 如果处于瞄准状态, 则尝试释放技能
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagReleased(InputTag);
-		}
-	}
-	else
+	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+	
+	if (!bTargeting && !bShiftKeyDown)
 	{
 		// 非瞄准状态（移动模式）
 		const APawn* ControlledPawn = GetPawn();
-		if (!ControlledPawn)
-		{
-			UE_LOG(LogTemp, Error, TEXT("AbilityInputTagHeld: No controlled pawn!"));
-			return;
-		}
-		
 		// 短按（小于阈值）且角色存在 → 发起【自动寻路】
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{

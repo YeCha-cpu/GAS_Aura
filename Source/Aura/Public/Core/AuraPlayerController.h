@@ -43,6 +43,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Aura|Input")
 	TObjectPtr<UInputAction> ZoomAction;
 	
+	UPROPERTY(EditAnywhere, Category = "Aura|Input")
+	TObjectPtr<UInputAction> ShiftAction;
+	
 	// 输入标签配置 数据资产
 	UPROPERTY(EditAnywhere, Category = "Aura|Input")
 	TObjectPtr<UAuraInputConfig> InputConfig;
@@ -53,6 +56,10 @@ private:
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 	void AbilityInputTagHeld(FGameplayTag InputTag);
+	void ShiftPressed() { bShiftKeyDown = true;}
+	void ShiftReleased() { bShiftKeyDown = false;}
+	
+	bool bShiftKeyDown = false;
 	
 	// 鼠标追踪
 	void CursorTrace();

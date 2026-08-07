@@ -18,7 +18,8 @@ public class Aura : ModuleRules
 				"GameplayTags",
 				"GameplayAbilities",
 				"GameplayTasks",
-				"NavigationSystem"
+				"NavigationSystem",
+				"Niagara"
 			});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

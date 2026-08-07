@@ -197,37 +197,24 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 {
 	Super::PostGameplayEffectExecute(Data);
 	
+	// Props 用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
+	FEffectProperties Props;
+	SetEffectProperties(Data, Props);
+	
 	// Data 是 GAS 传入的完整回调上下文，包含了「哪个 GameplayEffect、修改了哪个属性、修改了多少数值、谁是施法者、谁是目标」等全部信息。
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		// 确保应用 GE 后，Health属性值在有效范围内
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		UE_LOG(LogTemp, Warning, TEXT("Health Changed on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
 		
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black,
-				 FString::Printf(TEXT("Health from GetHealth(): %f"), GetHealth()));
-			GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Black,
-				 FString::Printf(TEXT("Health Magnitude: %f"), Data.EvaluatedData.Magnitude));
-		}
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		// 确保应用 GE 后，Mana属性值在有效范围内
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 		
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(7, 5.f, FColor::Black,
-				 FString::Printf(TEXT("Mana from GetMana(): %f"), GetMana()));
-			GEngine->AddOnScreenDebugMessage(8,  5.f, FColor::Black,
-				 FString::Printf(TEXT("Mana Magnitude: %f"), Data.EvaluatedData.Magnitude));
-		}
 	}
-
-	// Props 用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
-	FEffectProperties Props;
-	SetEffectProperties(Data, Props);
 }
 
 /**
