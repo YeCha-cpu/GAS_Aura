@@ -4,9 +4,12 @@
 #include "GAS/AS/AuraAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "Core/AuraPlayerController.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
 #include "GAS/GT/AuraGameplayTags.h"
+#include "Interface/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
@@ -207,13 +210,55 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		// 确保应用 GE 后，Health属性值在有效范围内
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 		UE_LOG(LogTemp, Warning, TEXT("Health Changed on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
-		
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		// 确保应用 GE 后，Mana属性值在有效范围内
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
-		
+	}
+	
+	// 处理 IncomingDamage【元属性】，原属性经过处理后才应用
+	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
+	{
+		const float LocalIncomingDamage = GetIncomingDamage();	// 获取元属性值
+		SetIncomingDamage(0.f);	//将元属性重置为0，确保只使用一次
+		if (LocalIncomingDamage > 0.f)
+		{
+			const float NewHealth = GetHealth() - LocalIncomingDamage;
+			SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+			
+			const bool bFatal = NewHealth <= 0.f;	// 判断是否致死
+			if (bFatal)
+			{
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if (CombatInterface)
+				{
+					CombatInterface->Die(); // 如果致死 
+				}
+			}
+			else
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	// 通过标签来激活对应能力
+			}
+			
+			/** 显示伤害数字 */
+			ShowFloatingText(Props, LocalIncomingDamage);
+		}
+	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+	// 攻击者与受击目标不是同一个角色，排除自残情况
+	if (Props.SourceCharacter != Props.TargetCharacter)
+	{
+		// 获取发起攻击的源角色对应的玩家控制器，并强转为项目自定义的AAuraPlayerController类型
+		if(AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter, 0)))
+		{
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter);
+		}
 	}
 }
 
@@ -251,7 +296,7 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 		// 获取 施法者 角色对象
 		if (IsValid(Props.SourceController))
 		{
-			ACharacter* SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
+			Props.SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
 		}
 			
 	}
@@ -266,3 +311,4 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
 }
+

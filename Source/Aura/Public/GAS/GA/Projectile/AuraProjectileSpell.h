@@ -9,7 +9,7 @@
 class AAuraProjectile;
 
 /**
- * 投射物技能类
+ * 投射物能力类
  * 功能：在服务器端生成一个投射物 Actor
  * 注：目标数据由外部（如 AbilityTask）提供，通过蓝图调用 SpawnProjectile
  */

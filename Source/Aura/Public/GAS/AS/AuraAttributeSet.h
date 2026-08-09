@@ -66,6 +66,13 @@ public:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	// GE修改AS属性完毕后调用
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
+	/**
+	 * Meta Attributes
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);	
 
 	/**
 	 * vital Attributes
@@ -181,4 +188,6 @@ public:
 private:
 	// 从 GameplayEffect 修改回调数据（Data）中，提取施法者（Source）与目标（Target）双方的完整上下文信息
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
+	
+	void ShowFloatingText(const FEffectProperties& Props, float Damage) const;
 };

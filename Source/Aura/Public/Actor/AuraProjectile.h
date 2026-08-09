@@ -23,7 +23,7 @@ public:
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = "true"))
-	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+	FGameplayEffectSpecHandle DamageEffectSpecHandle;	// 施加给外部的伤害GE
 
 
 protected:

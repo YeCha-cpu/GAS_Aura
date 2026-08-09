@@ -1,12 +1,12 @@
 // Copyright GYQ
 
 #include "GAS/GA/Projectile/AuraProjectileSpell.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Actor/AuraProjectile.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "GAS/GT/AuraGameplayTags.h"
 #include "Interface/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -38,8 +38,6 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		SpawnTransform.SetLocation(SocketLocation);
 		SpawnTransform.SetRotation(Rotation.Quaternion());
 		
-		//TODO: 还需设置旋转（通常由目标位置计算方向）
-		
 		// 使用延迟生成（SpawnActorDeferred）以便在 FinishSpawning 前设置属性
 		AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
 			ProjectileClass, 
@@ -48,10 +46,12 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			Cast<APawn>(GetOwningActorFromActorInfo()), 
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		
-		// 给予这个发射物一个能造成伤害的 Gameplay effect spec
-		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-		FGameplayEffectSpecHandle GESpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
-		Projectile->DamageEffectSpecHandle = GESpecHandle;
+		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());	// 获取能力系统组件
+		FGameplayEffectSpecHandle GESpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());	// 创建伤害效果规格句柄
+		FAuraGameplayTags GT = FAuraGameplayTags::Get();	// 获取游戏玩法标签集合
+		const float ScaleDamage = Damage.GetValueAtLevel(GetAbilityLevel());	// 根据当前能力等级获取伤害值
+		Projectile->DamageEffectSpecHandle = GESpecHandle;	// 将 伤害效果规格句柄 设置给 发射物Actor的伤害效果规格句柄
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(GESpecHandle, GT.Effect_Damage, ScaleDamage);	// 由调用者（SetByCaller）设置伤害值
 		
 		// 完成生成（触发 BeginPlay 等初始化）
 		Projectile->FinishSpawning(SpawnTransform);

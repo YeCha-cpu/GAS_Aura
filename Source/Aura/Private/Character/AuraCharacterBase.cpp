@@ -7,6 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GAS/AuraAbilitySystemComponent.h"
+#include "Materials/MaterialInstance.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -23,15 +25,48 @@ AAuraCharacterBase::AAuraCharacterBase()
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AAuraCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
 
-void AAuraCharacterBase::BeginPlay()
+UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
 {
-	Super::BeginPlay();
+	return HitReactMontage;
+}
+
+void AAuraCharacterBase::Die()
+{
+	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));	// 解除武器与角色骨骼的 attachments
+	MulticastHandleDeath();
+}
+
+// 多播角色死亡函数 
+void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+{
+	// 武器开启物理模拟、重力、仅物理碰撞 
+	Weapon->SetSimulatePhysics(true);
+	Weapon->SetEnableGravity(true);
+	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	// 角色骨骼Mesh开启 布娃娃物理、重力、仅物理碰撞
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetEnableGravity(true);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	// 骨骼对静态世界开启阻挡碰撞
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+
+	// 角色胶囊体碰撞彻底关闭
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
+	// 角色消融
+	Dissolve();
 }
 
 FVector AAuraCharacterBase::GetCombatSocketLocation()
@@ -71,5 +106,23 @@ void AAuraCharacterBase::AddCharacterAbilities()
 	if (!HasAuthority()) return;
 	
 	AuraASC->AddCharacterAbilities(StartUpAbilities);
+}
+
+// 死亡后身体和武器的分别溶解效果
+void AAuraCharacterBase::Dissolve()
+{
+	if (IsValid(CharacterDissolveMaterialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(CharacterDissolveMaterialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicMatInst);
+		StartCharacterDissolveTimeline(DynamicMatInst);
+	}
+
+	if (IsValid(WeaponDissolveMaterialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(WeaponDissolveMaterialInstance, this);
+		Weapon->SetMaterial(0, DynamicMatInst);
+		StartWeaponDissolveTimeline(DynamicMatInst);
+	}
 }
 

@@ -1,9 +1,7 @@
 // Copyright GYQ
 
 #include "Core/AuraPlayerController.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
-#include "DrawDebugHelpers.h"
 #include "EnhancedInputSubsystems.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
@@ -16,6 +14,7 @@
 #include "GAS/AuraAbilitySystemComponent.h"
 #include "GAS/GT/AuraGameplayTags.h"
 #include "Input/AuraInputComponent.h"
+#include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -32,6 +31,29 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	CursorTrace();// 追踪鼠标
 	AutoRun();// 自动移动
 	
+}
+
+/**
+ * @brief 实现伤害飘字展示逻辑（RPC实现函数）
+ * @param DamageAmount 本次造成的伤害数值
+ * @param TargetCharacter 承受伤害的目标角色对象
+ */
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+{
+	// 目标角色有效 + 预先配置好的伤害文字组件蓝图类不为空
+	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	{
+		// 1.动态创建伤害UI组件实例，Outer所有者设为本PlayerController，使用指定的蓝图子类
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+		// 2.注册组件，让引擎正式接管该组件生命周期、渲染、Tick更新
+		DamageText->RegisterComponent();
+		// 3.将组件挂载到目标角色的根组件上，挂载规则：保持挂载后的相对变换（跟随角色本体移动）
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		// 4.解除挂载，解绑规则：保留当前世界空间位置，让飘字脱离角色独立上浮飘走
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		// 5.传入伤害数值，由组件内部刷新UI文字内容、启动上浮动画与自动销毁逻辑
+		DamageText->SetDamageText(DamageAmount);
+	}
 }
 
 void AAuraPlayerController::AutoRun()

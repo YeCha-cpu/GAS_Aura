@@ -6,6 +6,8 @@
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
+class UAnimMontage;
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, BlueprintType)
 class UCombatInterface : public UInterface
@@ -27,4 +29,9 @@ public:
 	// 给拥有者添加攻击时要面向的目标 (记得启用 Motion Warping 插件)
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void UpdateFacingTarget(const FVector& FacingTargetLocation);
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UAnimMontage* GetHitReactMontage();	// 可重写，可在蓝图中覆盖
+	
+	virtual void Die() = 0;
 };

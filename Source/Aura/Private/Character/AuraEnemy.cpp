@@ -6,6 +6,10 @@
 #include "Aura/Aura.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GAS/BluePrintFunctionLibrary/AuraGASLibrary.h"
+#include "GAS/GA/AuraGameplayAbility.h"
+#include "GAS/GT/AuraGameplayTags.h"
 #include "UI/Widget/AuraUserWidget.h"
 
 
@@ -47,12 +51,18 @@ int32 AAuraEnemy::GetPlayerLevel()
 	return Level;
 }
 
+void AAuraEnemy::Die()
+{
+	SetLifeSpan(LifeSpan);
+	Super::Die();
+}
+
 void AAuraEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// 初始化GAS能力系统所需的Actor基础信息（OwnerActor、AvatarActor绑定）
-	InitAbilityActorInfo();
+	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	InitAbilityActorInfo();	// 初始化GAS能力系统所需的Actor基础信息（OwnerActor、AvatarActor绑定）
+	UAuraGASLibrary::GiveStartAbilities(this, AbilitySystemComponent);	// 赋予初始技能
 	
 	// 为生命值条设置Widget控制器
 	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
@@ -62,6 +72,7 @@ void AAuraEnemy::BeginPlay()
 	
 	if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(AttributeSet))
 	{
+		// 监听血量属性变化
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAS->GetHealthAttribute()).
 		AddLambda([this](const FOnAttributeChangeData& Data)
 			{
@@ -70,7 +81,7 @@ void AAuraEnemy::BeginPlay()
 				OnHealthChanged.Broadcast(Data.NewValue);
 			}
 		);
-		
+		// 监听最大血量属性变化
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAS->GetMaxHealthAttribute()).
 		AddLambda([this](const FOnAttributeChangeData& Data)
 			{
@@ -79,11 +90,23 @@ void AAuraEnemy::BeginPlay()
 			}
 		);
 		
+		// 注册受击标签监听（受击者的ASC组件 新增或完全移除受击标签（Effect_HitReact）时才会调用回调函数）
+		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effect_HitReact, EGameplayTagEventType::NewOrRemoved).
+		AddUObject(this, &AAuraEnemy::HitReactTagChanged);
+		
 		// 初始化血量条显示
 		OnHealthChanged.Broadcast(AuraAS->GetHealth());
 		OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
 		
 	}
+}
+
+// 受击标签数量发生变化时，设置bHitReacting，并阻止其移动 
+void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	bHitReacting = NewCount > 0;
+		
+	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
@@ -95,4 +118,9 @@ void AAuraEnemy::InitAbilityActorInfo()
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 	
 	InitializeDefaultAttributes();
+}
+
+void AAuraEnemy::InitializeDefaultAttributes() const
+{
+	UAuraGASLibrary::InitializeDefaultAttributes(this, CharacterClass, Level, AbilitySystemComponent); 
 }

@@ -15,7 +15,6 @@ void FAuraGameplayTags::InitNativeGameplayTags()
 	/*
 	 * 注册主属性标签
 	 */
-	
 	GameplayTags.Attributes_Primary_Strength = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(/** 获取全局标签管理器 */
 			FName("Attributes.Primary.Strength"),FString("Strength (increases attack power)"));
@@ -80,26 +79,34 @@ void FAuraGameplayTags::InitNativeGameplayTags()
 	 */
 	GameplayTags.InputTag_LMB = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_LMB"),FString("鼠标左键的 输入标签"));
+			FName("InputTag_LMB"),FString( "Left Mouse Button" ));
 	
 	GameplayTags.InputTag_RMB = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_RMB"),FString("鼠标右键的 输入标签"));
+			FName("InputTag_RMB"),FString( "Right Mouse Button" ));
 	
-	GameplayTags.InputTag_1 = 
+	GameplayTags.InputTag_Key1 = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_1"),FString(" 按键1的 输入标签"));
+			FName("InputTag_Key1"),FString( "Key 1" ));
 	
-	GameplayTags.InputTag_2 = 
+	GameplayTags.InputTag_Key2 = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_2"),FString("按键2的 输入标签"));
+			FName("InputTag_Key2"),FString( "Key 2" ));
 	
-	GameplayTags.InputTag_3 = 
+	GameplayTags.InputTag_Key3 = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_3"),FString("按键3的 输入标签"));
+			FName("InputTag_Key3"),FString( "Key 3" ));
 	
-	GameplayTags.InputTag_4 = 
+	GameplayTags.InputTag_Key4 = 
 		UGameplayTagsManager::Get().AddNativeGameplayTag(
-			FName("InputTag_4"),FString("按键4的 输入标签"));
+			FName("InputTag_Key4"),FString( "Key 4" ));
+	
+	GameplayTags.Effect_Damage = 
+		UGameplayTagsManager::Get().AddNativeGameplayTag(
+			FName("Damage"),FString( "Damage" ));
+	
+	GameplayTags.Effect_HitReact = 
+		UGameplayTagsManager::Get().AddNativeGameplayTag(
+			FName("Effect_HitReact"),FString( "Hit React Effect" ));
 }
 

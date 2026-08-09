@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
+#include "DataAssets/CharacterClassInfo.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "AuraGASLibrary.generated.h"
 
+class UAttributeMenuWidgetController;
 class UOverlayWidgetController;
 
 /**
@@ -43,12 +45,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Library|WidgetController")
 	static UOverlayWidgetController* GetOverlayWidgetController(const UObject* WorldContextObject);
 	
-	
 	/** 【蓝图可调用】获取 AttributeMenuWidgetController（属性菜单 UI 控制器） 
 	 *  功能与 GetOverlayWidgetController 类似，用于获取 AttributeMenuWidgetController
 	 */
 	UFUNCTION(BlueprintPure, Category = "Library|WidgetController")
 	static UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObject);
 
+	UFUNCTION(BlueprintCallable, Category = "Library|CharacterClassDefault")
+	static void InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC);
 	
+	UFUNCTION(BlueprintCallable, Category = "Library|CharacterClassDefault")
+	static void GiveStartAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC);
 };

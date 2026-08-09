@@ -48,9 +48,12 @@ public:
 	
 	FGameplayTag InputTag_LMB;/** 输入标签：左键点击 */
 	FGameplayTag InputTag_RMB;/** 输入标签：右键点击 */
-	FGameplayTag InputTag_1;/** 输入标签：1 */
-	FGameplayTag InputTag_2;/** 输入标签：2 */
-	FGameplayTag InputTag_3;/** 输入标签：3 */
-	FGameplayTag InputTag_4;/** 输入标签：4 */
+	FGameplayTag InputTag_Key1;/** 输入标签：1 */
+	FGameplayTag InputTag_Key2;/** 输入标签：2 */
+	FGameplayTag InputTag_Key3;/** 输入标签：3 */
+	FGameplayTag InputTag_Key4;/** 输入标签：4 */
+	
+	FGameplayTag Effect_Damage;/** 效果标签：伤害 */
+	FGameplayTag Effect_HitReact;/** 效果标签：击中反应 */
 	
 };
