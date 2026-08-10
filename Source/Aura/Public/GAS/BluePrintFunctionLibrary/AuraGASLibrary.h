@@ -56,4 +56,19 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Library|CharacterClassDefault")
 	static void GiveStartAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC);
+	
+	UFUNCTION(BlueprintCallable, Category = "Library|CharacterClassDefault")
+	static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
+	
+	UFUNCTION(BlueprintPure, Category = "Library|CharacterClassDefault")
+	static bool IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle);
+	
+	UFUNCTION(BlueprintPure, Category = "Library|CharacterClassDefault")
+	static bool IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle);
+	
+	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	static void SetIsBlockedHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bIsBlockedHit);
+	
+	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bIsCriticalHit);
 };

@@ -2,6 +2,7 @@
 
 #include "GAS/BluePrintFunctionLibrary/AuraGASLibrary.h"
 
+#include "AuraAbilityTypes.h"
 #include "Core/AuraGameModeBase.h"
 #include "Core/AuraHUD.h"
 #include "Core/AuraPlayerState.h"
@@ -60,16 +61,11 @@ UAttributeMenuWidgetController* UAuraGASLibrary::GetAttributeMenuWidgetControlle
 // Aura项目GAS工具类：为ASC初始化角色对应职业的三类基础属性（主属性、副属性、生命核心属性）
 void UAuraGASLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC)
 {
-	// 通过世界上下文获取当前GameMode，并强转为项目自定义的AuraGameMode基类
-	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-	// 校验GameMode获取失败则直接退出函数，防止空指针访问崩溃
-	if (AuraGameMode == nullptr) return;
-	
 	// 通过ASC获取角色角色
 	AActor* AvatarActor = ASC->GetAvatarActor();
 
-	// 从GameMode中拿到全局配置的角色职业信息数据资源
-	UCharacterClassInfo* CharacterClassInfo = AuraGameMode->CharacterClassInfo;
+	// 通过 GetCharacterClassInfo() 获取角色职业信息数据资源
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 	// 根据传入的职业枚举，取出该职业预设的基础属性配置结构体
 	FCharacterClassDefaultInfo ClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
 
@@ -99,7 +95,7 @@ void UAuraGASLibrary::GiveStartAbilities(const UObject* WorldContextObject, UAbi
 	if (AuraGameMode == nullptr) return;
 
 	// 获取GameMode中存储的角色职业配置数据资产
-	UCharacterClassInfo* CharacterClassInfo = AuraGameMode->CharacterClassInfo;
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 
 	// 遍历通用基础技能数组
 	for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
@@ -108,6 +104,49 @@ void UAuraGASLibrary::GiveStartAbilities(const UObject* WorldContextObject, UAbi
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		// 将技能赋予传入的目标ASC组件
 		ASC->GiveAbility(AbilitySpec);
+	}
+}
+
+UCharacterClassInfo* UAuraGASLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
+{
+	// 从上下文获取当前GameMode并强转为项目自定义Aura游戏模式
+	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
+	if (AuraGameMode == nullptr) return nullptr;
+	
+	return AuraGameMode->CharacterClassInfo;
+}
+
+bool UAuraGASLibrary::IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->IsBlockedHit();
+	}
+	return false;
+}
+
+bool UAuraGASLibrary::IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->IsCriticalHit();
+	}
+	return false;
+}
+
+void UAuraGASLibrary::SetIsBlockedHit(FGameplayEffectContextHandle& EffectContextHandle, bool bIsBlockedHit)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetIsBlockedHit(bIsBlockedHit);
+	}
+}
+
+void UAuraGASLibrary::SetIsCriticalHit(FGameplayEffectContextHandle& EffectContextHandle, bool bIsCriticalHit)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetIsCriticalHit(bIsCriticalHit);
 	}
 }
 

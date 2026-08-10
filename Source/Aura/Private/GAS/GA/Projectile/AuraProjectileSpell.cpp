@@ -47,11 +47,28 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		
 		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());	// 获取能力系统组件
-		FGameplayEffectSpecHandle GESpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());	// 创建伤害效果规格句柄
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();	// 创建效果上下文句柄
+		
+		EffectContextHandle.AddSourceObject(Projectile); // 添加源对象
+		EffectContextHandle.SetAbility(this); // 设置上下文句柄所属能力
+		TArray<TWeakObjectPtr<AActor>> Actors;
+		EffectContextHandle.AddActors(Actors); // 添加目标对象
+		FHitResult HitResult;
+		HitResult.Location = ProjectileTargetLocation;
+		EffectContextHandle.AddHitResult(HitResult); // 添加击中结果
+		
+		FGameplayEffectSpecHandle GESpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);	// 创建伤害效果规格句柄
 		FAuraGameplayTags GT = FAuraGameplayTags::Get();	// 获取游戏玩法标签集合
 		const float ScaleDamage = Damage.GetValueAtLevel(GetAbilityLevel());	// 根据当前能力等级获取伤害值
 		Projectile->DamageEffectSpecHandle = GESpecHandle;	// 将 伤害效果规格句柄 设置给 发射物Actor的伤害效果规格句柄
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(GESpecHandle, GT.Effect_Damage, ScaleDamage);	// 由调用者（SetByCaller）设置伤害值
+		
+		/* 
+		 * 由调用者（SetByCaller）设置伤害值，传递标签为 Effect_Damage
+		 * GESpecHandle：代表即将被应用的那个 GameplayEffect 的规格
+		 * GT.Effect_Damage：一个 GameplayTag（即你在 FAuraGameplayTags 中定义的 Effect_Damage）。它作为该数值的 键（Key）
+		 * ScaleDamage：要传入的浮点数值，即最终计算好的伤害值（值（Value））
+		 */
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(GESpecHandle, GT.Effect_Damage, ScaleDamage);	
 		
 		// 完成生成（触发 BeginPlay 等初始化）
 		Projectile->FinishSpawning(SpawnTransform);

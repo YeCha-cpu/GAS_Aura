@@ -7,6 +7,7 @@
 #include "Core/AuraPlayerController.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
+#include "GAS/BluePrintFunctionLibrary/AuraGASLibrary.h"
 #include "GAS/GT/AuraGameplayTags.h"
 #include "Interface/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -244,12 +245,14 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 			}
 			
 			/** 显示伤害数字 */
-			ShowFloatingText(Props, LocalIncomingDamage);
+			const bool bBlock = UAuraGASLibrary::IsBlockedHit(Props.EffectContextHandle);
+			const bool bCriticalHit = UAuraGASLibrary::IsCriticalHit(Props.EffectContextHandle);
+			ShowFloatingText(Props, LocalIncomingDamage, bBlock, bCriticalHit);
 		}
 	}
 }
 
-void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCriticalHit) const
 {
 	// 攻击者与受击目标不是同一个角色，排除自残情况
 	if (Props.SourceCharacter != Props.TargetCharacter)
@@ -266,8 +269,8 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
  * 从 GameplayEffect 修改回调数据（Data）中，提取施法者（Source）与目标（Target）双方的完整上下文信息
  * 统一封装到 FEffectProperties 结构体中，避免在属性回调里重复编写大量重复的指针提取与空校验代码
  * 
- * @param Data   GAS 传入的 GE 修改回调 的完整上下文，包含施法者、目标、修改数值、GE 实例等全部信息
- * @param Props  输出参数，用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
+ * @param Data GAS 传入的 GE 修改回调 的完整上下文，包含施法者、目标、修改数值、GE 实例等全部信息
+ * @param Props 输出参数，用于存放提取完成的双方 Avatar、控制器、ASC、Character 等对象指针
  * 
  * @note  本函数仅在服务端生效（PostGameplayEffectExecute 仅服务器触发）
  * @note  施法者控制器做了双重兜底获取：优先从 ASC 身份信息取，失败则从 Pawn 对象获取，兼容 ASC 挂载在 PlayerState/Character 等不同场景
